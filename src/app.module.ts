@@ -1,0 +1,46 @@
+import { Module, ValidationPipe } from '@nestjs/common';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { APP_PIPE } from '@nestjs/core';
+import { UserModule } from './user/user.module';
+import { CityModule } from './city/city.module';
+import { NeighborhoodModule } from './neighborhood/neighborhood.module';
+import { PropertyModule } from './property/property.module';
+import { MediaModule } from './media/media.module';
+import { ConfigModule } from '@nestjs/config';
+import * as dotenv from 'dotenv'; 
+dotenv.config(); 
+
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: 5432,
+      username: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_DATABASE,
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
+    }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      ignoreEnvFile:true
+      
+    }),
+    UserModule,
+    CityModule,
+    NeighborhoodModule,
+    PropertyModule,
+    MediaModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService, {
+    provide: APP_PIPE,
+    useClass: ValidationPipe,
+  },],
+})
+export class AppModule {}
