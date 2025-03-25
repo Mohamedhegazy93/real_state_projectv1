@@ -8,7 +8,7 @@ import { diskStorage } from 'multer';
 @Controller('property')
 export class PropertyController {
   constructor(private readonly propertyService: PropertyService) {}
-
+// POST ~/property
   @Post()
   @UseInterceptors(
    FilesInterceptor('files'),

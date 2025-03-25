@@ -9,6 +9,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Neighborhood } from './entities/neighborhood.entity';
 import { Repository } from 'typeorm';
 import { City } from 'src/city/entities/city.entity';
+import { NeighborhoodMedia } from 'src/media/entities/neighborhoodMedia.entity';
+import { MediaType } from 'src/media/entities/media.entity';
 
 @Injectable()
 export class NeighborhoodService {
@@ -17,6 +19,8 @@ export class NeighborhoodService {
     private readonly neighborhoodRepository: Repository<Neighborhood>,
     @InjectRepository(City)
     private readonly cityRepository: Repository<City>,
+    @InjectRepository(NeighborhoodMedia)
+    private readonly neighborhoodMediaRepository: Repository<NeighborhoodMedia>,
   ) {}
 
   async create(createNeighborhoodDto: CreateNeighborhoodDto) {
@@ -51,6 +55,33 @@ export class NeighborhoodService {
       message: 'Neighborhood created successfully',
       neighborhood,
     };
+  }
+
+  async uploadNeighborhoodImages(id: number, files: Express.Multer.File[]) {
+    const neigbohood = await this.neighborhoodRepository.findOne({
+      where: { neighborhood_id: id },
+    });
+    if (!neigbohood) {
+      throw new NotFoundException('neighborhood not found');
+    }
+    if (files && files.length > 0) {
+      const mediaPromises = files.map(async (file) => {
+        const media = this.neighborhoodMediaRepository.create({
+          media_type: file.mimetype.startsWith('image')
+            ? MediaType.IMAGE
+            : MediaType.VIDEO,
+          media_url: file.filename,
+          neighborhood: neigbohood,
+        });
+        await this.neighborhoodMediaRepository.save(media);
+      });
+
+      await Promise.all(mediaPromises);
+      return {
+        message: 'all files uploded successfully',
+      };
+    }
+    throw new BadRequestException('no files provided');
   }
 
   async findAll() {

@@ -21,7 +21,7 @@ export class PropertyMedia {
     @Column()
     media_url: string;
 
-    @ManyToOne(() => Property, (property) => property.media)
+    @ManyToOne(() => Property, (property) => property.media,{onDelete:'CASCADE'})
     property: Property;
 }
 

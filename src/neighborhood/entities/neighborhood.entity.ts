@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { City } from '../../city/entities/city.entity';
 import { Property } from 'src/property/entities/property.entity';
+import { NeighborhoodMedia } from 'src/media/entities/neighborhoodMedia.entity';
 
 @Entity()
 export class Neighborhood {
@@ -15,6 +16,10 @@ export class Neighborhood {
   city: City;
   @OneToMany(() => Property, (property) => property.neighborhood,{onDelete:'RESTRICT'})
   properties: Property[];
+  
+  @OneToMany(() => NeighborhoodMedia, (media) => media.neighborhood,{eager:true})
+  media: NeighborhoodMedia[];
+
 
  
 }

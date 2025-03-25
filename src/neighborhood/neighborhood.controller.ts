@@ -7,10 +7,13 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { NeighborhoodService } from './neighborhood.service';
 import { CreateNeighborhoodDto } from './dto/create-neighborhood.dto';
 import { UpdateNeighborhoodDto } from './dto/update-neighborhood.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('neighborhood')
 export class NeighborhoodController {
@@ -19,6 +22,11 @@ export class NeighborhoodController {
   @Post()
   create(@Body() createNeighborhoodDto: CreateNeighborhoodDto) {
     return this.neighborhoodService.create(createNeighborhoodDto);
+  }
+  @Post(':id/uploadImages')
+  @UseInterceptors(FilesInterceptor('files'))
+  uploadNeighborhoodImages(@Param('id') id:number ,@UploadedFiles() files:Express.Multer.File[]) {
+    return this.neighborhoodService.uploadNeighborhoodImages(id,files);
   }
   // GET : ~/neighborhood
   @Get()

@@ -142,7 +142,7 @@ export class PropertyService {
       property,
     };
   }
-
+// Update property
   async updateProperty(id: number, updatePropertyDto: UpdatePropertyDto) {
     const property = await this.propertyRepository.findOneBy({
       property_id: id,
@@ -190,7 +190,7 @@ export class PropertyService {
 
     return this.propertyRepository.save(property);
   }
-
+// Delete property files
   async deletePropertyFiles(id: number, filesIds: number[]) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
@@ -198,13 +198,13 @@ export class PropertyService {
     if (!property) {
       throw new NotFoundException('property not found');
     }
-    for (const mediaId of filesIds) {
+    for (const fileId of filesIds) {
       const media = await this.propertyMediaRepository.findOne({
-        where: { media_id: mediaId, property: { property_id: id } },
+        where: { media_id: fileId, property: { property_id: id } },
       });
       if (!media) {
         throw new NotFoundException(
-          `media with id ${mediaId} not found for property ${id}`,
+          `media with id ${fileId} not found for property ${id}`,
         );
       }
       const imagePath = join(
@@ -219,7 +219,7 @@ export class PropertyService {
       message: 'media deleted successfully',
     };
   }
-
+// Delete property
   async removeProperty(id: number) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },

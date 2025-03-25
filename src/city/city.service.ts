@@ -11,6 +11,8 @@ import { City } from './entities/city.entity';
 import { Repository } from 'typeorm';
 import { Media, MediaType } from 'src/media/entities/media.entity';
 import { CityMedia } from 'src/media/entities/cityMedia.entity';
+import { join } from 'path';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class CityService {
@@ -22,6 +24,8 @@ export class CityService {
     @InjectRepository(CityMedia)
     private cityMediaRepository: Repository<CityMedia>,
   ) {}
+
+  // Create city
   async create(createCityDto: CreateCityDto) {
     const cityFind = await this.cityRepository.findOneBy({
       city_name: createCityDto.city_name,
@@ -38,7 +42,7 @@ export class CityService {
   }
 
   async uploadCityImages(
-    @Param('id') id: number,
+   id: number,
     files: Express.Multer.File[],
   ) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
@@ -61,6 +65,36 @@ export class CityService {
     }
     throw new NotFoundException('no imags provided')
   }
+  async deleteCityImages(id:number,filesIds:number[]){
+    const city = await this.cityRepository.findOne({
+      where: { city_id: id },
+    });
+    if (!city) {
+      throw new NotFoundException('city not found');
+    }
+    for(const fileId of filesIds){
+      const media=await this.cityMediaRepository.findOne({
+        where:{media_id:fileId,city:{city_id:id}}
+      })
+      if(!media){
+        throw new NotFoundException(
+          `file with id ${fileId} not found for property ${id}`,
+        );
+      }
+      const imagePath = join(
+        process.cwd(),
+        `./images/city/${media?.media_url}`,
+      );
+      unlinkSync(imagePath);
+    }
+
+    await this.cityMediaRepository.delete(filesIds);
+    return {
+      message: 'media deleted successfully',
+    };
+    }
+
+  
 
   async findAll() {
     const cities = await this.cityRepository.find();
