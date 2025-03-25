@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, UpdateDat
 import { Neighborhood } from '../../neighborhood/entities/neighborhood.entity';
 import { User } from '../../user/entities/user.entity';
 import { Media } from 'src/media/entities/media.entity';
+import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
 
 export enum PropertyStatus {
   AVAILABLE = 'available',
@@ -53,13 +54,13 @@ export class Property {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.properties,{eager:true})
+  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.properties,{eager:true,onDelete:'RESTRICT'})
   neighborhood: Neighborhood;
 
   @ManyToOne(() => User, (user) => user.properties)
   user: User;
 
-  @OneToMany(() => Media, (media) => media.property,{eager:true})
+  @OneToMany(() => PropertyMedia, (media) => media.property,{eager:true})
   media: Media[];
 
 

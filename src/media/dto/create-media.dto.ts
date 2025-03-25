@@ -1,4 +1,4 @@
-import { IsEnum, IsString, IsNotEmpty } from 'class-validator';
+import { IsEnum, IsString, IsNotEmpty, IsNumber } from 'class-validator';
 import { MediaType } from '../entities/media.entity';
 
 export class CreateMediaDto {
@@ -8,7 +8,7 @@ export class CreateMediaDto {
   @IsString()
   @IsNotEmpty()
   media_url: string;
-
+  @IsNumber()
   @IsNotEmpty()
   property_id: number;
 }

@@ -1,3 +1,4 @@
+import { Media } from 'src/media/entities/media.entity';
 import { Neighborhood } from '../../neighborhood/entities/neighborhood.entity';
 import {
     Entity,
@@ -5,6 +6,7 @@ import {
     PrimaryGeneratedColumn,
     OneToMany,
   } from 'typeorm';
+import { CityMedia } from 'src/media/entities/cityMedia.entity';
 
   @Entity()
   export class City {
@@ -16,6 +18,11 @@ import {
 
     @OneToMany(() => Neighborhood, (neighborhood) => neighborhood.city)
   neighborhoods: Neighborhood[];
+  
+  @OneToMany(() => CityMedia, (media) => media.city,{eager:true})
+  media: Media[];
+
+
 
   
   }

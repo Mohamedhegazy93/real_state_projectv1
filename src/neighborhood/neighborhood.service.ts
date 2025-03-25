@@ -72,7 +72,6 @@ export class NeighborhoodService {
 
     const neigbohoods = await this.neighborhoodRepository.find({
       where: { city: { city_id: city_id } },
-      
     });
     if (!neigbohoods)
       throw new NotFoundException(
@@ -144,10 +143,18 @@ export class NeighborhoodService {
       where: { neighborhood_id: id },
     });
     if (!neighborhood) throw new NotFoundException('neighborhood not found');
-    await this.neighborhoodRepository.remove(neighborhood);
-
-    return {
-      message: 'neighborhood deleted sucessfully',
-    };
+    try {
+      await this.neighborhoodRepository.remove(neighborhood);
+      return {
+        message: 'neighborhood deleted sucessfully',
+      };
+    } catch (error) {
+      if (error.message.includes('violates foreign key constraint')) {
+        throw new BadRequestException(
+          'can not delete this neighborhood because it has related property',
+        );
+      }
+      throw error;
+    }
   }
 }

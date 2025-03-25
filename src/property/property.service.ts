@@ -1,5 +1,6 @@
 import {
   BadGatewayException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,6 +11,10 @@ import { Property } from './entities/property.entity';
 import { Neighborhood } from 'src/neighborhood/entities/neighborhood.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { Media, MediaType } from 'src/media/entities/media.entity';
+import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
+import path, { join } from 'path';
+import { unlinkSync } from 'fs';
 
 @Injectable()
 export class PropertyService {
@@ -20,9 +25,14 @@ export class PropertyService {
     private neighborhoodRepository: Repository<Neighborhood>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @InjectRepository(PropertyMedia)
+    private propertyMediaRepository: Repository<PropertyMedia>,
   ) {}
-
-  async create(createPropertyDto: CreatePropertyDto) {
+  // Create Property
+  async createProperty(
+    createPropertyDto: CreatePropertyDto,
+    files: Express.Multer.File[],
+  ) {
     const { neighborhood_id, user_id, ...propertyData } = createPropertyDto;
 
     const neighborhood = await this.neighborhoodRepository.findOne({
@@ -62,62 +72,159 @@ export class PropertyService {
       property,
     };
   }
-
-  async findAll() {
-    const propertys = await this.propertyRepository.find();
-    if(!propertys){
-      throw new NotFoundException('no propertys founded in this neighborhood')
+  // Upload property files
+  async uploadPropertyFiles(id: number, files: Express.Multer.File[]) {
+    const property = await this.propertyRepository.findOne({
+      where: { property_id: id },
+    });
+    if (!property) {
+      throw new NotFoundException('property not found');
     }
-    return propertys;
+    if (files && files.length > 0) {
+      const mediaPromises = files.map(async (file) => {
+        const media = this.propertyMediaRepository.create({
+          media_type: file.mimetype.startsWith('image')
+            ? MediaType.IMAGE
+            : MediaType.VIDEO,
+          media_url: file.filename,
+          property: property,
+        });
+        await this.propertyMediaRepository.save(media);
+      });
+
+      await Promise.all(mediaPromises);
+      return {
+        message: 'all files uploded successfully',
+      };
+    }
+    throw new BadRequestException('no files provided');
+  }
+  // Find property files
+  async findPropertyFiles(id: number) {
+    const property = await this.propertyRepository.findOne({
+      where: { property_id: id },
+    });
+    if (!property) {
+      throw new NotFoundException('property not found');
+    }
+
+    const propertyFiles = await this.propertyMediaRepository.find({
+      where: { property: { property_id: id } },
+    });
+    if (propertyFiles && propertyFiles.length > 0) {
+      return {
+        propertyFiles,
+      };
+    }
+    throw new NotFoundException('no media for this property');
   }
 
- async findOne(id: number) {
-   const property = await this.propertyRepository.findOne({where:{property_id:id}})
-   if(!property){
-    throw new NotFoundException("property not found")
-   }
-
-   return{
-    property
-   }
+  // Find all propertys
+  async findAllProperties(): Promise<{ propertys: Property[] }> {
+    const propertys = await this.propertyRepository.find();
+    if (!propertys) {
+      throw new NotFoundException('no propertys founded in this neighborhood');
+    }
+    return {
+      propertys,
+    };
   }
 
- async update(id: number, updatePropertyDto: UpdatePropertyDto) {
-    const property = await this.propertyRepository.findOneBy({ property_id: id });
+  async findOneProperty(id: number): Promise<{ property: Property }> {
+    const property = await this.propertyRepository.findOne({
+      where: { property_id: id },
+    });
+    if (!property) {
+      throw new NotFoundException('property not found');
+    }
+
+    return {
+      property,
+    };
+  }
+
+  async updateProperty(id: number, updatePropertyDto: UpdatePropertyDto) {
+    const property = await this.propertyRepository.findOneBy({
+      property_id: id,
+    });
     if (!property) {
       throw new NotFoundException(`Property with ID ${id} not found`);
     }
 
-    // التحقق من وجود الحي والمستخدم إذا تم تحديثهما
     if (updatePropertyDto.neighborhood_id) {
-      const neighborhood = await this.neighborhoodRepository.findOneBy({ neighborhood_id: updatePropertyDto.neighborhood_id });
+      const neighborhood = await this.neighborhoodRepository.findOneBy({
+        neighborhood_id: updatePropertyDto.neighborhood_id,
+      });
       if (!neighborhood) {
-        throw new NotFoundException(`Neighborhood with ID ${updatePropertyDto.neighborhood_id} not found`);
+        throw new NotFoundException(
+          `Neighborhood with ID ${updatePropertyDto.neighborhood_id} not found`,
+        );
       }
       property.neighborhood = neighborhood;
     }
 
     if (updatePropertyDto.user_id) {
-      const user = await this.userRepository.findOneBy({ id: updatePropertyDto.user_id });
+      const user = await this.userRepository.findOneBy({
+        id: updatePropertyDto.user_id,
+      });
       if (!user) {
-        throw new NotFoundException(`User with ID ${updatePropertyDto.user_id} not found`);
+        throw new NotFoundException(
+          `User with ID ${updatePropertyDto.user_id} not found`,
+        );
       }
       property.user = user;
     }
+    const propertyExist = await this.propertyRepository.findOne({
+      where: {
+        title: updatePropertyDto.title,
+        neighborhood: { neighborhood_id: updatePropertyDto.neighborhood_id },
+      },
+    });
+    if (propertyExist) {
+      throw new BadGatewayException(
+        'property already exist in this neighborhood according to his title , please change title',
+      );
+    }
 
-    // تحديث خصائص العقار الأخرى
     Object.assign(property, updatePropertyDto);
 
-    // حفظ التغييرات في قاعدة البيانات
     return this.propertyRepository.save(property);
-  
   }
 
-  async remove(id: number) {
+  async deletePropertyFiles(id: number, filesIds: number[]) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
     });
-    if (!property) throw new NotFoundException('neighborhood not found');
+    if (!property) {
+      throw new NotFoundException('property not found');
+    }
+    for (const mediaId of filesIds) {
+      const media = await this.propertyMediaRepository.findOne({
+        where: { media_id: mediaId, property: { property_id: id } },
+      });
+      if (!media) {
+        throw new NotFoundException(
+          `media with id ${mediaId} not found for property ${id}`,
+        );
+      }
+      const imagePath = join(
+        process.cwd(),
+        `./images/property/${media?.media_url}`,
+      );
+      unlinkSync(imagePath);
+    }
+
+    await this.propertyMediaRepository.delete(filesIds);
+    return {
+      message: 'media deleted successfully',
+    };
+  }
+
+  async removeProperty(id: number) {
+    const property = await this.propertyRepository.findOne({
+      where: { property_id: id },
+    });
+    if (!property) throw new NotFoundException('property not found');
     await this.propertyRepository.remove(property);
 
     return {

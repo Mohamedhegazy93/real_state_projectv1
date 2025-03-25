@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Property } from '../../property/entities/property.entity';
+import { City } from 'src/city/entities/city.entity';
 
 export enum MediaType {
   IMAGE = 'image',
@@ -23,4 +24,6 @@ export class Media {
 
   @ManyToOne(() => Property, (property) => property.media)
   property: Property;
+  @ManyToOne(() => City, (city) => city.media)
+  city: City;
 }

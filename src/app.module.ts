@@ -10,6 +10,7 @@ import { PropertyModule } from './property/property.module';
 import { MediaModule } from './media/media.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv'; 
+import { UploadsModule } from './uploads/uploads.module';
 dotenv.config(); 
 
 
@@ -31,11 +32,14 @@ dotenv.config();
       ignoreEnvFile:true
       
     }),
+    UploadsModule,
     UserModule,
     CityModule,
     NeighborhoodModule,
     PropertyModule,
     MediaModule,
+    
+    
   ],
   controllers: [AppController],
   providers: [AppService, {

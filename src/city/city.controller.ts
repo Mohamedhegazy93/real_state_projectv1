@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseInterceptors, UploadedFiles } from '@nestjs/common';
 import { CityService } from './city.service';
 import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('city')
 export class CityController {
@@ -10,6 +11,13 @@ export class CityController {
   @Post()
   create(@Body() createCityDto: CreateCityDto) {
     return this.cityService.create(createCityDto);
+  }
+  @Post(':id/uploadImages')
+  @UseInterceptors(
+    FilesInterceptor('files'),
+   )
+  uploadCityImages(@Param('id')id:number,@UploadedFiles() files:Express.Multer.File[]) {
+    return this.cityService.uploadCityImages(id,files);
   }
 // GET : ~/city
   @Get()
