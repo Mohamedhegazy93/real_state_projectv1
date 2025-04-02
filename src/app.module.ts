@@ -11,11 +11,15 @@ import { MediaModule } from './media/media.module';
 import { ConfigModule } from '@nestjs/config';
 import * as dotenv from 'dotenv'; 
 import { UploadsModule } from './uploads/uploads.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { MulterModule } from '@nestjs/platform-express';
 dotenv.config(); 
 
 
 @Module({
   imports: [
+    MulterModule.register({ dest: './images' }),
+    CloudinaryModule,
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
@@ -38,6 +42,7 @@ dotenv.config();
     NeighborhoodModule,
     PropertyModule,
     MediaModule,
+    CloudinaryModule,
     
     
   ],

@@ -17,6 +17,10 @@ export class CityMedia {
     @Column()
     media_url: string;
 
+  @Column({ nullable: true }) // اجعل public_id قابلاً للقيمة الفارغة
+  public_id: string;
+
+
     @ManyToOne(() => City, (city) => city.media)
     city: City;
 }

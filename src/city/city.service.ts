@@ -8,11 +8,13 @@ import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { City } from './entities/city.entity';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Media, MediaType } from 'src/media/entities/media.entity';
 import { CityMedia } from 'src/media/entities/cityMedia.entity';
 import { join } from 'path';
 import { unlinkSync } from 'fs';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { resourceLimits } from 'worker_threads';
 
 @Injectable()
 export class CityService {
@@ -23,6 +25,7 @@ export class CityService {
     private mediaRepository: Repository<Media>,
     @InjectRepository(CityMedia)
     private cityMediaRepository: Repository<CityMedia>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   // Create city
@@ -40,81 +43,81 @@ export class CityService {
       city,
     };
   }
-
-  async uploadCityImages(
-   id: number,
-    files: Express.Multer.File[],
-  ) {
+  // Upload city images
+  async uploadCityImages(id: number, files: Express.Multer.File[]) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
     if (!city) {
       throw new NotFoundException('city not found');
     }
-    if(files&&files.length>0){
-      const cityPromises=files.map(async(file)=>{
-        const media=await this.cityMediaRepository.create({
-          media_type:MediaType.IMAGE,
-          media_url:file.filename,
-          city:city
+    if (files && files.length > 0) {
+      const results = await this.cloudinaryService.uploadFiles(files); // ارفع الصور على Cloudinary
+      console.log(results);
 
-        })
-        await this.cityMediaRepository.save(media)
-      })
-      await Promise.all(cityPromises)
-      return{message:'all images uploded sucessfully'}
-
+      for (const result of results) {
+        const media = this.cityMediaRepository.create({
+          media_type: MediaType.IMAGE,
+          media_url: result.secure_url, // استخدم URL اللي بيرجع من Cloudinary
+          public_id: result.public_id,
+          city: city,
+        });
+        await this.cityMediaRepository.save(media);
+      }
+      return { message: 'all images uploded sucessfully' };
     }
-    throw new NotFoundException('no imags provided')
+    throw new NotFoundException('no imags provided');
   }
-  async deleteCityImages(id:number,filesIds:number[]){
+  async deleteCityImages(id: number, filesIds: number[]) {
     const city = await this.cityRepository.findOne({
       where: { city_id: id },
     });
     if (!city) {
       throw new NotFoundException('city not found');
     }
-    for(const fileId of filesIds){
-      const media=await this.cityMediaRepository.findOne({
-        where:{media_id:fileId,city:{city_id:id}}
-      })
-      if(!media){
+    for (const fileId of filesIds) {
+      const media = await this.cityMediaRepository.findOne({
+        where: { media_id: fileId, city: { city_id: id } },
+      });
+      if (!media) {
         throw new NotFoundException(
           `file with id ${fileId} not found for property ${id}`,
         );
       }
-      const imagePath = join(
-        process.cwd(),
-        `./images/city/${media?.media_url}`,
-      );
-      unlinkSync(imagePath);
+
+      await this.cloudinaryService.deleteImageFromCloudinary(media.public_id);
     }
 
     await this.cityMediaRepository.delete(filesIds);
     return {
       message: 'media deleted successfully',
     };
-    }
+  }
 
-  
-
-  async findAll() {
-    const cities = await this.cityRepository.find();
+  // Find all cities
+  async findAll(city_name?: string) {
+    // filter by city_name
+    const filters = {
+      ...(city_name ? { city_name: Like(`%${city_name}%`) } : {}),
+    };
+    const cities = await this.cityRepository.find({
+      where: filters,
+    });
     return {
       length: cities.length,
       cities,
     };
   }
-
+// Find one city
   async findOne(id: number) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
-    if (!city) throw new NotFoundException();
+    if (!city) throw new NotFoundException(`no city for ${id} id`);
     return {
       city,
     };
   }
-
+// Update city
   async update(id: number, updateCityDto: UpdateCityDto) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
-    if (!city) throw new NotFoundException();
+    if (!city) throw new NotFoundException(`no city for ${id} id`);
     const existCity = await this.cityRepository.findOne({
       where: { city_name: updateCityDto.city_name },
     });
@@ -129,10 +132,10 @@ export class CityService {
       city,
     };
   }
-
+// Remove city
   async remove(id: number) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
-    if (!city) throw new NotFoundException();
+    if (!city) throw new NotFoundException(`no city for ${id} id`);
     try {
       await this.cityRepository.remove(city);
       return {

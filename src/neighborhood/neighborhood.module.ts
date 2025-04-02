@@ -13,7 +13,7 @@ import { diskStorage } from 'multer';
   imports:[TypeOrmModule.forFeature([Neighborhood,City,NeighborhoodMedia]),CityModule,
   MulterModule.register({
     storage: diskStorage({
-      destination: './images/neighborhood',
+      destination: './images',
       filename: (req, file, cb) => {
         const prefix = `${Date.now()}-${Math.round(Math.random() * 1000000)}`;
         const filename = `${prefix}-${file.originalname}`;

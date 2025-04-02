@@ -13,7 +13,7 @@ export class UploadsController {
   @UseInterceptors(FilesInterceptor('files'))
   uploadFiles(@UploadedFiles() files: Express.Multer.File) {
     return {
-      message:'fillesssssssssssss',
+      message:'files uploded suessfully',
       files
     }
   }

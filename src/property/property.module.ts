@@ -15,7 +15,7 @@ import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
     TypeOrmModule.forFeature([Property, User, Neighborhood, Media,PropertyMedia]),
     MulterModule.register({
       storage: diskStorage({
-        destination: './images/property',
+        destination: './images',
         filename: (req, file, cb) => {
           const prefix = `${Date.now()}-${Math.round(Math.random() * 1000000)}`;
           const filename = `${prefix}-${file.originalname}`;
