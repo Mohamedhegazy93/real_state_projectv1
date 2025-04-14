@@ -8,12 +8,15 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(RefreshToken)
+    private refreshToken: Repository<RefreshToken>,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -31,7 +34,9 @@ export class UserService {
   }
 
   async findAll() {
-    const users = await this.usersRepository.find();
+    const users = await this.usersRepository.find({
+      relations: ['refreshTokens'],
+    });
     if (!users) {
       throw new NotFoundException('no users founded');
     }

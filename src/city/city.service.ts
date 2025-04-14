@@ -9,20 +9,15 @@ import { UpdateCityDto } from './dto/update-city.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { City } from './entities/city.entity';
 import { Like, Repository } from 'typeorm';
-import { Media, MediaType } from 'src/media/entities/media.entity';
 import { CityMedia } from 'src/media/entities/cityMedia.entity';
-import { join } from 'path';
-import { unlinkSync } from 'fs';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { resourceLimits } from 'worker_threads';
+import { MediaType } from 'src/media/entities/media.entity';
 
 @Injectable()
 export class CityService {
   constructor(
     @InjectRepository(City)
     private readonly cityRepository: Repository<City>,
-    @InjectRepository(Media)
-    private mediaRepository: Repository<Media>,
     @InjectRepository(CityMedia)
     private cityMediaRepository: Repository<CityMedia>,
     private cloudinaryService: CloudinaryService,
@@ -50,13 +45,13 @@ export class CityService {
       throw new NotFoundException('city not found');
     }
     if (files && files.length > 0) {
-      const results = await this.cloudinaryService.uploadFiles(files); // ارفع الصور على Cloudinary
+      const results = await this.cloudinaryService.uploadFiles(files)  // upload to cloudinary
       console.log(results);
 
       for (const result of results) {
         const media = this.cityMediaRepository.create({
           media_type: MediaType.IMAGE,
-          media_url: result.secure_url, // استخدم URL اللي بيرجع من Cloudinary
+          media_url: result.secure_url,
           public_id: result.public_id,
           city: city,
         });

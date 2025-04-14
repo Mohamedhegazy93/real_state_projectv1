@@ -4,20 +4,23 @@ import { MediaType } from './media.entity';
 import { Neighborhood } from 'src/neighborhood/entities/neighborhood.entity';
 
 @Entity()
-export class NeighborhoodMedia { 
-    @PrimaryGeneratedColumn()
-    neighborhooda_id: number;
+export class NeighborhoodMedia {
+  @PrimaryGeneratedColumn()
+  media_id: number;
 
-    @Column({
-        type: 'enum',
-        enum: MediaType,
-        default: MediaType.IMAGE,
-    })
-    media_type: MediaType;
+  @Column({
+    type: 'enum',
+    enum: MediaType,
+    default: MediaType.IMAGE,
+  })
+  media_type: MediaType;
 
-    @Column()
-    media_url: string;
+  @Column()
+  media_url: string;
 
-    @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.media)
-    neighborhood: Neighborhood;
+  @Column({ nullable: true })
+  public_id: string;
+
+  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.media)
+  neighborhood: Neighborhood;
 }

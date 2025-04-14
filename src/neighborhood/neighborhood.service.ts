@@ -10,6 +10,7 @@ import { Neighborhood } from './entities/neighborhood.entity';
 import { Repository } from 'typeorm';
 import { City } from 'src/city/entities/city.entity';
 import { NeighborhoodMedia } from 'src/media/entities/neighborhoodMedia.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { MediaType } from 'src/media/entities/media.entity';
 
 @Injectable()
@@ -21,6 +22,8 @@ export class NeighborhoodService {
     private readonly cityRepository: Repository<City>,
     @InjectRepository(NeighborhoodMedia)
     private readonly neighborhoodMediaRepository: Repository<NeighborhoodMedia>,
+    private cloudinaryService: CloudinaryService,
+
   ) {}
 
   async create(createNeighborhoodDto: CreateNeighborhoodDto) {
@@ -65,23 +68,47 @@ export class NeighborhoodService {
       throw new NotFoundException('neighborhood not found');
     }
     if (files && files.length > 0) {
-      const mediaPromises = files.map(async (file) => {
+      const results = await this.cloudinaryService.uploadFiles(files)  // upload to cloudinary
+      console.log(results);
+      for (const result of results) {
         const media = this.neighborhoodMediaRepository.create({
-          media_type: file.mimetype.startsWith('image')
-            ? MediaType.IMAGE
-            : MediaType.VIDEO,
-          media_url: file.filename,
+          media_type: MediaType.IMAGE,
+          media_url: result.secure_url,
+          public_id: result.public_id,
           neighborhood: neigbohood,
         });
         await this.neighborhoodMediaRepository.save(media);
-      });
-
-      await Promise.all(mediaPromises);
+      }
       return {
         message: 'all files uploded successfully',
       };
     }
     throw new BadRequestException('no files provided');
+  }
+  async deleteNeighborhoodImages(id: number, filesIds: number[]) {
+    const neighborhood = await this.neighborhoodRepository.findOne({
+      where: { neighborhood_id: id },
+    });
+    if (!neighborhood) {
+      throw new NotFoundException('neighborhood not found');
+    }
+    for (const fileId of filesIds) {
+      const media = await this.neighborhoodMediaRepository.findOne({
+        where: { media_id: fileId, neighborhood: { neighborhood_id: id } },
+      });
+      if (!media) {
+        throw new NotFoundException(
+          `file with id ${fileId} not found for neighborhood ${id}`,
+        );
+      }
+
+      await this.cloudinaryService.deleteImageFromCloudinary(media.public_id);
+    }
+
+    await this.neighborhoodMediaRepository.delete(filesIds);
+    return {
+      message: 'media deleted successfully',
+    };
   }
 
   async findAll() {

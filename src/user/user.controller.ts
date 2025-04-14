@@ -10,10 +10,14 @@ import {
   UploadedFile,
   BadRequestException,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { UserRole } from './entities/user.entity';
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -24,6 +28,8 @@ export class UserController {
   }
 
   @Get()
+  @UseGuards(AuthGuard)
+  @Roles(UserRole.MANAGER)
   findAll() {
     return this.userService.findAll();
   }

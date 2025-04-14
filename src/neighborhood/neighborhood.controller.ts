@@ -28,6 +28,14 @@ export class NeighborhoodController {
   uploadNeighborhoodImages(@Param('id') id:number ,@UploadedFiles() files:Express.Multer.File[]) {
     return this.neighborhoodService.uploadNeighborhoodImages(id,files);
   }
+   // DELETE : ~/city/:id/deleteImages
+   @Delete(':id/deleteImages')
+   deleteNeighborhoodImages(
+     @Param('id', ParseIntPipe) id: number,
+     @Body('filesIds') filesIds: number[],
+   ) {
+     return this.neighborhoodService.deleteNeighborhoodImages(id, filesIds);
+   }
   // GET : ~/neighborhood
   @Get()
   findAll() {

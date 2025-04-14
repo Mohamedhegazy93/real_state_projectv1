@@ -8,9 +8,13 @@ import { CityModule } from 'src/city/city.module';
 import { NeighborhoodMedia } from 'src/media/entities/neighborhoodMedia.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { Media } from 'src/media/entities/media.entity';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Neighborhood,City,NeighborhoodMedia]),CityModule,
+  imports:[TypeOrmModule.forFeature([Neighborhood,City,Media,NeighborhoodMedia]),CityModule,
+  CloudinaryModule,
   MulterModule.register({
     storage: diskStorage({
       destination: './images',
@@ -36,6 +40,6 @@ import { diskStorage } from 'multer';
   })
 ],
   controllers: [NeighborhoodController],
-  providers: [NeighborhoodService],
+  providers: [NeighborhoodService,CloudinaryService],
 })
 export class NeighborhoodModule {}

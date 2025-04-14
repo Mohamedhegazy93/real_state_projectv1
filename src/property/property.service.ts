@@ -15,6 +15,7 @@ import { Media, MediaType } from 'src/media/entities/media.entity';
 import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
 import path, { join } from 'path';
 import { unlinkSync } from 'fs';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PropertyService {
@@ -27,6 +28,7 @@ export class PropertyService {
     private userRepository: Repository<User>,
     @InjectRepository(PropertyMedia)
     private propertyMediaRepository: Repository<PropertyMedia>,
+    private cloudinaryService: CloudinaryService,
   ) {}
   // Create Property
   async createProperty(
@@ -81,18 +83,19 @@ export class PropertyService {
       throw new NotFoundException('property not found');
     }
     if (files && files.length > 0) {
-      const mediaPromises = files.map(async (file) => {
+      const results = await this.cloudinaryService.uploadFiles(files); // upload to cloudinary
+      console.log(results);
+
+      for (const result of results) {
         const media = this.propertyMediaRepository.create({
-          media_type: file.mimetype.startsWith('image')
-            ? MediaType.IMAGE
-            : MediaType.VIDEO,
-          media_url: file.filename,
+          media_type: MediaType.IMAGE,
+          media_url: result.secure_url,
+          public_id: result.public_id,
           property: property,
         });
-        await this.propertyMediaRepository.save(media);
-      });
 
-      await Promise.all(mediaPromises);
+        await this.propertyMediaRepository.save(media);
+      }
       return {
         message: 'all files uploded successfully',
       };
@@ -142,7 +145,7 @@ export class PropertyService {
       property,
     };
   }
-// Update property
+  // Update property
   async updateProperty(id: number, updatePropertyDto: UpdatePropertyDto) {
     const property = await this.propertyRepository.findOneBy({
       property_id: id,
@@ -190,7 +193,7 @@ export class PropertyService {
 
     return this.propertyRepository.save(property);
   }
-// Delete property files
+  // Delete property files
   async deletePropertyFiles(id: number, filesIds: number[]) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
@@ -207,11 +210,9 @@ export class PropertyService {
           `media with id ${fileId} not found for property ${id}`,
         );
       }
-      const imagePath = join(
-        process.cwd(),
-        `./images/property/${media?.media_url}`,
-      );
-      unlinkSync(imagePath);
+      await this.cloudinaryService.deleteImageFromCloudinary(media.public_id);
+
+     
     }
 
     await this.propertyMediaRepository.delete(filesIds);
@@ -219,7 +220,7 @@ export class PropertyService {
       message: 'media deleted successfully',
     };
   }
-// Delete property
+  // Delete property
   async removeProperty(id: number) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },

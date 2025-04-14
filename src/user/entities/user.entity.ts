@@ -9,6 +9,8 @@ import {
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Property } from 'src/property/entities/property.entity';
+import { IsPhoneNumber, isPhoneNumber } from 'class-validator';
+import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 export enum UserRole {
   ADMIN = 'admin',
   USER = 'user',
@@ -19,7 +21,7 @@ export class User {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ nullable: false, unique: true })
+  @Column({ nullable: false })
   userName: string;
   @Column({ nullable: false, unique: true })
   email: string;
@@ -27,6 +29,8 @@ export class User {
   @Column({ nullable: false })
   password: string;
 
+  @Column({ nullable: true, unique: true })
+  phoneNumber: string; 
   @Column({
     type: 'enum',
     enum: UserRole,
@@ -38,6 +42,10 @@ export class User {
   @OneToMany(() => Property, (property) => property.user)
   properties: Property[];
 
+  @OneToMany(() => RefreshToken, (refreshToken) => refreshToken.user)
+  refreshTokens: RefreshToken[];
+
+
   //Hash Password before insert to DB
   @BeforeInsert()
   @BeforeUpdate()
@@ -47,4 +55,5 @@ export class User {
       this.password = await bcrypt.hash(this.password, saltRounds);
     }
   }
+
 }

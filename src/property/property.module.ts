@@ -9,10 +9,12 @@ import { Media } from 'src/media/entities/media.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Property, User, Neighborhood, Media,PropertyMedia]),
+    TypeOrmModule.forFeature([Property, User, Neighborhood, Media,PropertyMedia]),CloudinaryModule,
     MulterModule.register({
       storage: diskStorage({
         destination: './images',
@@ -38,6 +40,6 @@ import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
     }),
   ],
   controllers: [PropertyController],
-  providers: [PropertyService],
+  providers: [PropertyService,CloudinaryService],
 })
 export class PropertyModule {}

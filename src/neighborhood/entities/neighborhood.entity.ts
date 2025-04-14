@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColum
 import { City } from '../../city/entities/city.entity';
 import { Property } from 'src/property/entities/property.entity';
 import { NeighborhoodMedia } from 'src/media/entities/neighborhoodMedia.entity';
+import { Media } from 'src/media/entities/media.entity';
 
 @Entity()
 export class Neighborhood {
@@ -18,7 +19,7 @@ export class Neighborhood {
   properties: Property[];
   
   @OneToMany(() => NeighborhoodMedia, (media) => media.neighborhood,{eager:true})
-  media: NeighborhoodMedia[];
+  media: Media[];
 
 
  

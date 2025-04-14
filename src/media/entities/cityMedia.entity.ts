@@ -4,23 +4,22 @@ import { MediaType } from './media.entity';
 
 @Entity()
 export class CityMedia {
-    @PrimaryGeneratedColumn()
-    media_id: number;
+  @PrimaryGeneratedColumn()
+  media_id: number;
 
-    @Column({
-        type: 'enum',
-        enum: MediaType,
-        default: MediaType.IMAGE,
-    })
-    media_type: MediaType;
+  @Column({
+    type: 'enum',
+    enum: MediaType,
+    default: MediaType.IMAGE,
+  })
+  media_type: MediaType;
 
-    @Column()
-    media_url: string;
+  @Column()
+  media_url: string;
 
-  @Column({ nullable: true }) // اجعل public_id قابلاً للقيمة الفارغة
+  @Column({ nullable: true })
   public_id: string;
 
-
-    @ManyToOne(() => City, (city) => city.media)
-    city: City;
+  @ManyToOne(() => City, (city) => city.media)
+  city: City;
 }

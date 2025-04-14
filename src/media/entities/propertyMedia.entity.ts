@@ -20,6 +20,8 @@ export class PropertyMedia {
 
     @Column()
     media_url: string;
+    @Column({ nullable: true })
+  public_id: string;
 
     @ManyToOne(() => Property, (property) => property.media,{onDelete:'CASCADE'})
     property: Property;
