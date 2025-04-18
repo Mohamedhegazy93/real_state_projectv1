@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreatePropertyDto } from './dto/create-property.dto';
 import { UpdatePropertyDto } from './dto/update-property.dto';
@@ -11,10 +12,8 @@ import { Property } from './entities/property.entity';
 import { Neighborhood } from 'src/neighborhood/entities/neighborhood.entity';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
-import { Media, MediaType } from 'src/media/entities/media.entity';
+import {  MediaType } from 'src/media/entities/media.entity';
 import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
-import path, { join } from 'path';
-import { unlinkSync } from 'fs';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
@@ -33,9 +32,9 @@ export class PropertyService {
   // Create Property
   async createProperty(
     createPropertyDto: CreatePropertyDto,
-    files: Express.Multer.File[],
+    payload
   ) {
-    const { neighborhood_id, user_id, ...propertyData } = createPropertyDto;
+    const { neighborhood_id, ...propertyData } = createPropertyDto;
 
     const neighborhood = await this.neighborhoodRepository.findOne({
       where: { neighborhood_id: neighborhood_id },
@@ -45,9 +44,9 @@ export class PropertyService {
         `Neighborhood with ID ${neighborhood_id} not found`,
       );
     }
-    const user = await this.userRepository.findOneBy({ id: user_id });
+    const user = await this.userRepository.findOneBy({ id: payload.id });
     if (!user) {
-      throw new NotFoundException(`User with ID ${user_id} not found`);
+      throw new NotFoundException(`User with ID  not found`);
     }
 
     const propertyExist = await this.propertyRepository.findOne({
@@ -65,7 +64,8 @@ export class PropertyService {
     const property = this.propertyRepository.create({
       ...propertyData,
       neighborhood,
-      user,
+      user:{id:payload.id},
+      
     });
     await this.propertyRepository.save(property);
 
@@ -124,6 +124,7 @@ export class PropertyService {
 
   // Find all propertys
   async findAllProperties(): Promise<{ propertys: Property[] }> {
+    
     const propertys = await this.propertyRepository.find();
     if (!propertys) {
       throw new NotFoundException('no propertys founded in this neighborhood');
@@ -136,6 +137,7 @@ export class PropertyService {
   async findOneProperty(id: number): Promise<{ property: Property }> {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
+      relations:['user']
     });
     if (!property) {
       throw new NotFoundException('property not found');
@@ -166,17 +168,7 @@ export class PropertyService {
       property.neighborhood = neighborhood;
     }
 
-    if (updatePropertyDto.user_id) {
-      const user = await this.userRepository.findOneBy({
-        id: updatePropertyDto.user_id,
-      });
-      if (!user) {
-        throw new NotFoundException(
-          `User with ID ${updatePropertyDto.user_id} not found`,
-        );
-      }
-      property.user = user;
-    }
+    
     const propertyExist = await this.propertyRepository.findOne({
       where: {
         title: updatePropertyDto.title,
@@ -221,15 +213,24 @@ export class PropertyService {
     };
   }
   // Delete property
-  async removeProperty(id: number) {
+  async removeProperty(id: number,payload) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
+      relations: ['user'],
     });
     if (!property) throw new NotFoundException('property not found');
-    await this.propertyRepository.remove(property);
+    console.log(property.user)
+    if(property.user.id===payload.id||payload.role=='manager'){
+      await this.propertyRepository.remove(property);
+      return {
+        message: 'property deleted sucessfully',
+      };
+      
+    }
+    throw new UnauthorizedException('this propertiy belong to another admin')
+   
+   
 
-    return {
-      message: 'property deleted sucessfully',
-    };
+    
   }
 }

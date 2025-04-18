@@ -6,6 +6,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { RefreshToken } from './entities/refresh-token.entity';
+import { UserModule } from 'src/user/user.module';
+import { UserService } from 'src/user/user.service';
+import { AuthGuard } from './guards/auth.guard';
 dotenv.config();
 
 @Module({
@@ -18,6 +21,6 @@ dotenv.config();
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService,AuthGuard],
 })
 export class AuthModule {}

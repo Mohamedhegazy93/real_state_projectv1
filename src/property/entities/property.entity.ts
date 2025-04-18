@@ -57,7 +57,7 @@ export class Property {
   @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.properties,{eager:true,onDelete:'RESTRICT'})
   neighborhood: Neighborhood;
 
-  @ManyToOne(() => User, (user) => user.properties)
+  @ManyToOne(() => User, (user) => user.properties,{onDelete:'SET NULL'})
   user: User;
 
   @OneToMany(() => PropertyMedia, (media) => media.property,{eager:true})

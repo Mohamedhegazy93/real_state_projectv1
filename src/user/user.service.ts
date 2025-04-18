@@ -1,5 +1,5 @@
 import {
-  BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -8,34 +8,34 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
-import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
-    @InjectRepository(RefreshToken)
-    private refreshToken: Repository<RefreshToken>,
   ) {}
-
-  async create(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: CreateUserDto) {
     const { email } = createUserDto;
-    const user = await this.usersRepository.findOneBy({ email: email });
-    if (user) throw new BadRequestException('user already exist');
-    const createUser = this.usersRepository.create(createUserDto);
-
-    const saveUser = await this.usersRepository.save(createUser);
-
-    return {
-      message: 'user created',
-      user: saveUser,
-    };
+    try {
+      const user = await this.usersRepository.findOneBy({ email: email });
+      if (user) {
+        throw new ConflictException('User with this email already exists');
+      }
+      const createUser = this.usersRepository.create(createUserDto);
+      const saveUser = await this.usersRepository.save(createUser);
+      return {
+        message: 'user created',
+        user: saveUser,
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async findAll() {
+  async getAllUsers() {
     const users = await this.usersRepository.find({
-      relations: ['refreshTokens'],
+      relations: ['refreshToken'],
     });
     if (!users) {
       throw new NotFoundException('no users founded');
@@ -46,7 +46,7 @@ export class UserService {
     };
   }
 
-  async findOne(id: number) {
+  async getUser(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) {
       throw new NotFoundException(`no user for ${id} id`);
@@ -55,19 +55,20 @@ export class UserService {
       user,
     };
   }
-  async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.usersRepository.findOneBy({ id });
-    if (!user) throw new NotFoundException(`no user for ${id} id`);
+  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+    try {
+      const user = await this.usersRepository.findOneBy({ id });
+      if (!user) throw new NotFoundException(`No user found with ID: ${id}`);
 
-    this.usersRepository.merge(user, updateUserDto);
-    await this.usersRepository.save(user);
-    return {
-      message: 'user updated sucessfully',
-      user,
-    };
+      this.usersRepository.merge(user, updateUserDto);
+      await this.usersRepository.save(user);
+      return { message: 'user updated successfully', user };
+    } catch (error) {
+      throw error;
+    }
   }
 
-  async remove(id: number) {
+  async removeUser(id: number) {
     const user = await this.usersRepository.findOneBy({ id });
     if (!user) throw new NotFoundException(`no user for ${id} id`);
 

@@ -51,8 +51,4 @@ export class CreatePropertyDto {
   @IsNotEmpty({ message: 'Neighborhood ID is required' })
   neighborhood_id: number;
 
-  @IsInt({ message: 'User ID must be an integer' })
-  @IsNotEmpty({ message: 'User ID is required' })
-  @Min(1, { message: 'User ID must be at least 1' })
-  user_id: number;
 }

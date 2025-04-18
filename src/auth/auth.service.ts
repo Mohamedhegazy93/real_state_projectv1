@@ -65,30 +65,53 @@ export class AuthService {
       relations: ['user'],
     });
     if (!token) {
-      throw new UnauthorizedException('refresh token is invaild');
+      throw new UnauthorizedException(
+        'refresh token is invaild or user not found',
+      );
     }
     // remove invaild token
     await this.refreshTokenRepository.remove(token);
     // generate new tokens
     return this.generateToken(token.user);
   }
+  async logout(refreshToken: string) {
+    const token = await this.refreshTokenRepository.findOne({
+      where: { refreshToken },
+    });
+
+    if (token) {
+      await this.refreshTokenRepository.remove(token);
+      return { message: 'Logged out successfully' };
+    } else {
+      throw new BadRequestException('Refresh token not found');
+    }
+  }
 
   // @/Functions/@
 
   // Store refreshtoken in DB
-  async storeRefreshToken(refreshToken: string, userId) {
+  async storeRefreshToken(refreshToken: string, userId: number) {
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 3);
-    const savedRefreshToken = this.refreshTokenRepository.create({
+    expiresAt.setDate(expiresAt.getDate() + 7);
+    const existingRefreshToken = await this.refreshTokenRepository.findOne({
+      where: { userId: userId },
+    });
+    const createRefreshToken = this.refreshTokenRepository.create({
       refreshToken,
       userId,
       expiresAt,
     });
-    await this.refreshTokenRepository.save(savedRefreshToken);
+
+    if (existingRefreshToken) {
+      await this.refreshTokenRepository.remove(existingRefreshToken);
+      await this.refreshTokenRepository.save(createRefreshToken);
+    } else {
+      await this.refreshTokenRepository.save(createRefreshToken);
+    }
   }
   // Generate tokens for user
   async generateToken(user: User) {
-    const payload = { id: user.id, role: user.role, email: user.email };
+    const payload = { id: user.id, role: user.role};
 
     const accessToken = await this.jwtService.signAsync(payload);
     const refreshToken = await this.jwtService.signAsync(payload, {

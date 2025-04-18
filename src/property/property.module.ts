@@ -11,9 +11,12 @@ import { diskStorage } from 'multer';
 import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UserModule } from 'src/user/user.module';
+import { AuthModule } from 'src/auth/auth.module';
+import { UserService } from 'src/user/user.service';
 
 @Module({
-  imports: [
+  imports: [AuthModule,
     TypeOrmModule.forFeature([Property, User, Neighborhood, Media,PropertyMedia]),CloudinaryModule,
     MulterModule.register({
       storage: diskStorage({
@@ -40,6 +43,6 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
     }),
   ],
   controllers: [PropertyController],
-  providers: [PropertyService,CloudinaryService],
+  providers: [PropertyService,CloudinaryService,UserService],
 })
 export class PropertyModule {}

@@ -9,6 +9,6 @@ import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
   imports:[TypeOrmModule.forFeature([User,RefreshToken])],
   controllers: [UserController],
   providers: [UserService],
-  exports:[]
+  exports:[UserModule]
 })
 export class UserModule {}

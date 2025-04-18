@@ -2,7 +2,7 @@ import { ClassSerializerInterceptor, Module, ValidationPipe } from '@nestjs/comm
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { UserModule } from './user/user.module';
 import { CityModule } from './city/city.module';
 import { NeighborhoodModule } from './neighborhood/neighborhood.module';
@@ -14,6 +14,7 @@ import { UploadsModule } from './uploads/uploads.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './auth/auth.module';
+import { AuthGuard } from './auth/guards/auth.guard';
 dotenv.config(); 
 
 
@@ -50,6 +51,7 @@ dotenv.config();
   ],
   controllers: [AppController],
   providers: [AppService,
+
   
   {
     provide:APP_INTERCEPTOR,
