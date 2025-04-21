@@ -200,6 +200,7 @@ export class NeighborhoodService {
     const neighborhood = await this.neighborhoodRepository.findOne({
       where: { neighborhood_id: id },
     });
+
     if (!neighborhood) throw new NotFoundException('neighborhood not found');
     try {
       await this.neighborhoodRepository.remove(neighborhood);

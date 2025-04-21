@@ -18,7 +18,7 @@ export class Neighborhood {
   @OneToMany(() => Property, (property) => property.neighborhood,{onDelete:'RESTRICT'})
   properties: Property[];
   
-  @OneToMany(() => NeighborhoodMedia, (media) => media.neighborhood,{eager:true})
+  @OneToMany(() => NeighborhoodMedia, (media) => media.neighborhood)
   media: Media[];
 
 

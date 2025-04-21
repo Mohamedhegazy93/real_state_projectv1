@@ -15,28 +15,34 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { UserRole } from './entities/user.entity';
+import { ApiOperation } from '@nestjs/swagger';
+
 @UseGuards(AuthGuard)
 @Roles(UserRole.MANAGER)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-  // POST ~/user/createUser
+  // POST ~/user
   @Post()
+  @ApiOperation({ summary: 'Create a new user' })
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
   }
   // GET ~/user
   @Get()
+  @ApiOperation({ summary: 'Get all users' })
   getAllUsers() {
     return this.userService.getAllUsers();
   }
   // GET ~/user/:id
   @Get(':id')
+  @ApiOperation({ summary: 'Get a specific user by ID' })
   getUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.getUser(id);
   }
   // PATCH ~/user/:id
   @Patch(':id')
+  @ApiOperation({ summary: 'Update a specific user by ID' })
   updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
@@ -45,6 +51,7 @@ export class UserController {
   }
   // DELETE ~/user/:id
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete a specific user by ID' })
   removeUser(@Param('id', ParseIntPipe) id: number) {
     return this.userService.removeUser(id);
   }

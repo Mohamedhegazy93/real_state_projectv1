@@ -11,8 +11,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Property } from './entities/property.entity';
 import { Neighborhood } from 'src/neighborhood/entities/neighborhood.entity';
 import { Repository } from 'typeorm';
-import { User } from 'src/user/entities/user.entity';
-import {  MediaType } from 'src/media/entities/media.entity';
+import { User, UserRole } from 'src/user/entities/user.entity';
+import { MediaType } from 'src/media/entities/media.entity';
 import { PropertyMedia } from 'src/media/entities/propertyMedia.entity';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
@@ -29,11 +29,9 @@ export class PropertyService {
     private propertyMediaRepository: Repository<PropertyMedia>,
     private cloudinaryService: CloudinaryService,
   ) {}
+
   // Create Property
-  async createProperty(
-    createPropertyDto: CreatePropertyDto,
-    payload
-  ) {
+  async createProperty(createPropertyDto: CreatePropertyDto, payload) {
     const { neighborhood_id, ...propertyData } = createPropertyDto;
 
     const neighborhood = await this.neighborhoodRepository.findOne({
@@ -64,8 +62,7 @@ export class PropertyService {
     const property = this.propertyRepository.create({
       ...propertyData,
       neighborhood,
-      user:{id:payload.id},
-      
+      user: { id: payload.id },
     });
     await this.propertyRepository.save(property);
 
@@ -82,9 +79,9 @@ export class PropertyService {
     if (!property) {
       throw new NotFoundException('property not found');
     }
+
     if (files && files.length > 0) {
       const results = await this.cloudinaryService.uploadFiles(files); // upload to cloudinary
-      console.log(results);
 
       for (const result of results) {
         const media = this.propertyMediaRepository.create({
@@ -124,7 +121,6 @@ export class PropertyService {
 
   // Find all propertys
   async findAllProperties(): Promise<{ propertys: Property[] }> {
-    
     const propertys = await this.propertyRepository.find();
     if (!propertys) {
       throw new NotFoundException('no propertys founded in this neighborhood');
@@ -137,7 +133,7 @@ export class PropertyService {
   async findOneProperty(id: number): Promise<{ property: Property }> {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
-      relations:['user']
+      relations: ['user'],
     });
     if (!property) {
       throw new NotFoundException('property not found');
@@ -168,7 +164,6 @@ export class PropertyService {
       property.neighborhood = neighborhood;
     }
 
-    
     const propertyExist = await this.propertyRepository.findOne({
       where: {
         title: updatePropertyDto.title,
@@ -202,9 +197,8 @@ export class PropertyService {
           `media with id ${fileId} not found for property ${id}`,
         );
       }
-      await this.cloudinaryService.deleteImageFromCloudinary(media.public_id);
 
-     
+      await this.cloudinaryService.deleteImageFromCloudinary(media.public_id);
     }
 
     await this.propertyMediaRepository.delete(filesIds);
@@ -213,24 +207,16 @@ export class PropertyService {
     };
   }
   // Delete property
-  async removeProperty(id: number,payload) {
+  async removeProperty(id: number) {
     const property = await this.propertyRepository.findOne({
       where: { property_id: id },
       relations: ['user'],
     });
     if (!property) throw new NotFoundException('property not found');
-    console.log(property.user)
-    if(property.user.id===payload.id||payload.role=='manager'){
-      await this.propertyRepository.remove(property);
-      return {
-        message: 'property deleted sucessfully',
-      };
-      
-    }
-    throw new UnauthorizedException('this propertiy belong to another admin')
-   
-   
 
-    
+    await this.propertyRepository.remove(property);
+    return {
+      message: 'property deleted sucessfully',
+    };
   }
 }

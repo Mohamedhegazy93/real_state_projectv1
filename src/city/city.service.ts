@@ -88,13 +88,14 @@ export class CityService {
   }
 
   // Find all cities
-  async findAll(city_name?: string) {
+  async getAllcities(city_name?: string) {
     // filter by city_name
     const filters = {
       ...(city_name ? { city_name: Like(`%${city_name}%`) } : {}),
     };
     const cities = await this.cityRepository.find({
       where: filters,
+      relations:['neighborhoods']
     });
     return {
       length: cities.length,
@@ -102,15 +103,15 @@ export class CityService {
     };
   }
 // Find one city
-  async findOne(id: number) {
-    const city = await this.cityRepository.findOne({ where: { city_id: id } });
+  async findCity(id: number) {
+    const city = await this.cityRepository.findOne({ where: { city_id: id},relations:['neighborhoods'] });
     if (!city) throw new NotFoundException(`no city for ${id} id`);
     return {
       city,
     };
   }
 // Update city
-  async update(id: number, updateCityDto: UpdateCityDto) {
+  async updateCity(id: number, updateCityDto: UpdateCityDto) {
     const city = await this.cityRepository.findOne({ where: { city_id: id } });
     if (!city) throw new NotFoundException(`no city for ${id} id`);
     const existCity = await this.cityRepository.findOne({
