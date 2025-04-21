@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor, Module, ValidationPipe } from '@nestjs/common';
+import { ClassSerializerInterceptor, MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -15,6 +15,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './auth/auth.module';
 import { AuthGuard } from './auth/guards/auth.guard';
+import { HttpLoggerMiddleware } from './middlewares/http-logger.middleware';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 dotenv.config(); 
 
 
@@ -46,6 +48,14 @@ dotenv.config();
     MediaModule,
     CloudinaryModule,
     AuthModule,
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
     
     
   ],
@@ -57,8 +67,18 @@ dotenv.config();
     provide:APP_INTERCEPTOR,
     useClass:ClassSerializerInterceptor  //Exclude()
   },
+  {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard
+  }
 
 
 ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(HttpLoggerMiddleware)
+      .forRoutes('*'); // تطبيق الـ middleware على جميع المسارات
+  }
+}
