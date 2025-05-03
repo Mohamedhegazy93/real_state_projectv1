@@ -23,8 +23,8 @@ export class RegisterDto {
   @ApiProperty()
   email: string;
   @IsPhoneNumber('EG')
-  @MinLength(11, { message: 'phone number must be 11 at least nunbers' })
-  @MaxLength(11, { message: 'phone number must be 11 at most nunbers' })
+  @MinLength(11, { message: 'phone number must be 11 at least numbers' })
+  @MaxLength(11, { message: 'phone number must be 11 at most numbers' })
   @NotContains(' ', { message: 'no space allowed' })
   @IsOptional()
   @ApiProperty()
