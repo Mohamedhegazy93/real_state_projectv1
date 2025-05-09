@@ -54,7 +54,9 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use(helmet());
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: process.env.NODE_ENV === 'production' 
+      ? ['https://real-state-project-nestjs.vercel.app', 'https://real-state-project-nestjs-postgresql-done.vercel.app']
+      : 'http://localhost:3000',
     credentials: true,
   });
   app.use(cookieParser());
@@ -62,7 +64,9 @@ async function bootstrap() {
   //Swagger Docs
   const swagger = new DocumentBuilder()
     .setTitle('Nestjs-real-state-application')
-    .addServer('http://localhost:3000')
+    .addServer(process.env.NODE_ENV === 'production' 
+      ? 'https://real-state-project-nestjs.vercel.app'
+      : 'http://localhost:3000')
     .setVersion('1.0')
     .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
     .addBearerAuth()
