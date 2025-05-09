@@ -40,8 +40,7 @@ dotenv.config();
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      ignoreEnvFile:true
-      
+      ignoreEnvFile: process.env.NODE_ENV === 'production'
     }),
     UploadsModule,
     UserModule,
