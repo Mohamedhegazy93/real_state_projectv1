@@ -69,7 +69,7 @@ async function bootstrap() {
     const swagger = new DocumentBuilder()
       .setTitle('Nestjs-real-state-application')
       .addServer(process.env.NODE_ENV === 'production' 
-        ? 'https://real-state-project-nestjs.vercel.app'
+        ? process.env.RAILWAY_STATIC_URL || 'https://real-state-project-nestjs.vercel.app'
         : 'http://localhost:3000')
       .setVersion('1.0')
       .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
@@ -89,4 +89,14 @@ export default async function handler(req, res) {
   const app = await bootstrap();
   const instance = app.getHttpAdapter().getInstance();
   return instance(req, res);
+}
+
+// Start the server if not in serverless environment
+if (process.env.NODE_ENV !== 'production' || !process.env.RAILWAY_STATIC_URL) {
+  bootstrap().then(app => {
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      logger.log(`Application is running on: http://localhost:${port}`);
+    });
+  });
 }
