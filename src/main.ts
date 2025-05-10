@@ -54,10 +54,10 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.use(helmet());
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://real-state-project-nestjs.vercel.app', 'https://real-state-project-nestjs-postgresql-done.vercel.app']
-      : 'http://localhost:3000',
+    origin: true, // Allow all origins in production
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
   app.use(cookieParser());
 
