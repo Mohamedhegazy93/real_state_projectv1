@@ -47,33 +47,46 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     });
   }
 }
-// Bootstrap
+
+let cachedApp;
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  // configurs
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
-  app.use(helmet());
-  app.enableCors({
-    origin: true, // Allow all origins in production
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  });
-  app.use(cookieParser());
+  if (!cachedApp) {
+    const app = await NestFactory.create(AppModule);
+    
+    // configurs
+    app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
+    app.use(helmet());
+    app.enableCors({
+      origin: true,
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    });
+    app.use(cookieParser());
 
-  //Swagger Docs
-  const swagger = new DocumentBuilder()
-    .setTitle('Nestjs-real-state-application')
-    .addServer(process.env.NODE_ENV === 'production' 
-      ? 'https://real-state-project-nestjs.vercel.app'
-      : 'http://localhost:3000')
-    .setVersion('1.0')
-    .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
-    .addBearerAuth()
-    .build();
-  const documentation = SwaggerModule.createDocument(app, swagger);
-  SwaggerModule.setup('swagger', app, documentation);
+    //Swagger Docs
+    const swagger = new DocumentBuilder()
+      .setTitle('Nestjs-real-state-application')
+      .addServer(process.env.NODE_ENV === 'production' 
+        ? 'https://real-state-project-nestjs.vercel.app'
+        : 'http://localhost:3000')
+      .setVersion('1.0')
+      .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
+      .addBearerAuth()
+      .build();
+    const documentation = SwaggerModule.createDocument(app, swagger);
+    SwaggerModule.setup('swagger', app, documentation);
 
-  await app.listen(process.env.PORT ?? 3000);
+    await app.init();
+    cachedApp = app;
+  }
+  return cachedApp;
 }
-bootstrap();
+
+// Export for serverless
+export default async function handler(req, res) {
+  const app = await bootstrap();
+  const instance = app.getHttpAdapter().getInstance();
+  return instance(req, res);
+}

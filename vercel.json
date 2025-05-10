@@ -18,5 +18,15 @@
       }
     }
   ],
-  "installCommand": "npm install"
+  "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "npm run build",
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "functions": {
+    "dist/main.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  }
 }
