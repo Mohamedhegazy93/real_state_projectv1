@@ -1,16 +1,15 @@
 {
     "version": 2,
-    "buildCommand": "nest build",
-    "outputDirectory": "dist",
-    "functions": {
-      "api/**/*.js": {
-        "runtime": "nodejs18.x"
-      }
-    },
+    "builds": [
+        {
+            "src": "dist/main.js",
+            "use": "@vercel/node"
+        }
+    ],
     "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "/api/main.js"
-      }
+        {
+            "src": "/(.*)",
+            "dest": "dist/main.js"
+        }
     ]
 }
