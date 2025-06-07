@@ -21,6 +21,6 @@ export class NeighborhoodMedia {
   @Column({ nullable: true })
   public_id: string;
 
-  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.media)
+  @ManyToOne(() => Neighborhood, (neighborhood) => neighborhood.media,{onDelete:'CASCADE'})
   neighborhood: Neighborhood;
 }

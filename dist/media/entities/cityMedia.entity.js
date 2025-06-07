@@ -42,7 +42,7 @@ __decorate([
     __metadata("design:type", String)
 ], CityMedia.prototype, "public_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => city_entity_1.City, (city) => city.media),
+    (0, typeorm_1.ManyToOne)(() => city_entity_1.City, (city) => city.media, { onDelete: 'CASCADE' }),
     __metadata("design:type", city_entity_1.City)
 ], CityMedia.prototype, "city", void 0);
 exports.CityMedia = CityMedia = __decorate([

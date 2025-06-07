@@ -18,7 +18,7 @@ import { UserRole } from './entities/user.entity';
 import { ApiOperation } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard)
-@Roles(UserRole.MANAGER)
+@Roles(UserRole.MANAGER,UserRole.ADMIN)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}

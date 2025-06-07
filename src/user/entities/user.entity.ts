@@ -3,14 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   BeforeInsert,
-  BeforeUpdate,
   OneToMany,
   OneToOne,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 import { Property } from 'src/property/entities/property.entity';
-import { IsPhoneNumber, isPhoneNumber } from 'class-validator';
 import { RefreshToken } from 'src/auth/entities/refresh-token.entity';
 export enum UserRole {
   ADMIN = 'admin',

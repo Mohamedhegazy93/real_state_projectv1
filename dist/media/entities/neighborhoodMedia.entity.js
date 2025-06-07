@@ -42,7 +42,7 @@ __decorate([
     __metadata("design:type", String)
 ], NeighborhoodMedia.prototype, "public_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => neighborhood_entity_1.Neighborhood, (neighborhood) => neighborhood.media),
+    (0, typeorm_1.ManyToOne)(() => neighborhood_entity_1.Neighborhood, (neighborhood) => neighborhood.media, { onDelete: 'CASCADE' }),
     __metadata("design:type", neighborhood_entity_1.Neighborhood)
 ], NeighborhoodMedia.prototype, "neighborhood", void 0);
 exports.NeighborhoodMedia = NeighborhoodMedia = __decorate([

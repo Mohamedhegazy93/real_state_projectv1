@@ -85,7 +85,7 @@ __decorate([
 ], UserController.prototype, "removeUser", null);
 exports.UserController = UserController = __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Controller)('user'),
     __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);

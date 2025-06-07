@@ -19,20 +19,18 @@ import { AuthGuard } from 'src/auth/guards/auth.guard';
 import { UserRole } from 'src/user/entities/user.entity';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { ApiOperation } from '@nestjs/swagger';
-
+@Roles(UserRole.MANAGER,UserRole.ADMIN)
 @Controller('neighborhood')
 export class NeighborhoodController {
   constructor(private readonly neighborhoodService: NeighborhoodService) {}
   // POST : ~/neighborhood
   @UseGuards(AuthGuard)
-  @Roles(UserRole.MANAGER)
   @Post()
   @ApiOperation({ summary: 'Create a new neighborhood' })
   create(@Body() createNeighborhoodDto: CreateNeighborhoodDto) {
     return this.neighborhoodService.create(createNeighborhoodDto);
   }
   @UseGuards(AuthGuard)
-  @Roles(UserRole.MANAGER)
   @Post(':id/uploadImages')
   @UseInterceptors(FilesInterceptor('files'))
   @ApiOperation({ summary: 'Upload images for a specific neighborhood' })
@@ -44,7 +42,6 @@ export class NeighborhoodController {
   }
   // DELETE : ~/city/:id/deleteImages
   @UseGuards(AuthGuard)
-  @Roles(UserRole.MANAGER)
   @Delete(':id/deleteImages')
   @ApiOperation({ summary: 'Delete specific images for a neighborhood' })
   deleteNeighborhoodImages(
@@ -74,7 +71,6 @@ export class NeighborhoodController {
   }
   // UPDATE : ~/neighborhood/:id
   @UseGuards(AuthGuard)
-  @Roles(UserRole.MANAGER)
   @Patch(':id')
   @ApiOperation({ summary: 'Update a specific neighborhood by ID' })
   update(
@@ -85,7 +81,6 @@ export class NeighborhoodController {
   }
   // DELETE : ~/neighborhood/:id
   @UseGuards(AuthGuard)
-  @Roles(UserRole.MANAGER)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a specific neighborhood by ID' })
   remove(@Param('id', ParseIntPipe) id: number) {

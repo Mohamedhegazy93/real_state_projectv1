@@ -1,0 +1,15 @@
+{
+    "buildCommand": "nest build",
+    "outputDirectory": "dist",
+    "functions": {
+      "dist/main.js": {
+        "runtime": "nodejs20.x"
+      }
+    },
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "/dist/main.js"
+      }
+    ]
+  }

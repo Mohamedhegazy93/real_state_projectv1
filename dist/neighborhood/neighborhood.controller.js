@@ -55,7 +55,6 @@ let NeighborhoodController = class NeighborhoodController {
 exports.NeighborhoodController = NeighborhoodController;
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
     (0, common_1.Post)(),
     (0, swagger_1.ApiOperation)({ summary: 'Create a new neighborhood' }),
     __param(0, (0, common_1.Body)()),
@@ -65,7 +64,6 @@ __decorate([
 ], NeighborhoodController.prototype, "create", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
     (0, common_1.Post)(':id/uploadImages'),
     (0, common_1.UseInterceptors)((0, platform_express_1.FilesInterceptor)('files')),
     (0, swagger_1.ApiOperation)({ summary: 'Upload images for a specific neighborhood' }),
@@ -77,7 +75,6 @@ __decorate([
 ], NeighborhoodController.prototype, "uploadNeighborhoodImages", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
     (0, common_1.Delete)(':id/deleteImages'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete specific images for a neighborhood' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -111,7 +108,6 @@ __decorate([
 ], NeighborhoodController.prototype, "findOne", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
     (0, common_1.Patch)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Update a specific neighborhood by ID' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -122,7 +118,6 @@ __decorate([
 ], NeighborhoodController.prototype, "update", null);
 __decorate([
     (0, common_1.UseGuards)(auth_guard_1.AuthGuard),
-    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER),
     (0, common_1.Delete)(':id'),
     (0, swagger_1.ApiOperation)({ summary: 'Delete a specific neighborhood by ID' }),
     __param(0, (0, common_1.Param)('id', common_1.ParseIntPipe)),
@@ -131,6 +126,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], NeighborhoodController.prototype, "remove", null);
 exports.NeighborhoodController = NeighborhoodController = __decorate([
+    (0, roles_decorator_1.Roles)(user_entity_1.UserRole.MANAGER, user_entity_1.UserRole.ADMIN),
     (0, common_1.Controller)('neighborhood'),
     __metadata("design:paramtypes", [neighborhood_service_1.NeighborhoodService])
 ], NeighborhoodController);

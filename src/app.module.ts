@@ -14,7 +14,6 @@ import { UploadsModule } from './uploads/uploads.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { AuthModule } from './auth/auth.module';
-import { AuthGuard } from './auth/guards/auth.guard';
 import { HttpLoggerMiddleware } from './middlewares/http-logger.middleware';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 dotenv.config(); 
@@ -34,9 +33,7 @@ dotenv.config();
       database: process.env.POSTGRES_DATABASE || process.env.DB_DATABASE,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: process.env.NODE_ENV !== 'production',
-      ssl: process.env.NODE_ENV === 'production' ? {
-        rejectUnauthorized: false
-      } : false
+      ssl:false
     }),
     ConfigModule.forRoot({
       isGlobal: true,

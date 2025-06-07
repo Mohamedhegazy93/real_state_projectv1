@@ -33,7 +33,7 @@ __decorate([
     __metadata("design:type", Array)
 ], City.prototype, "neighborhoods", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => cityMedia_entity_1.CityMedia, (media) => media.city),
+    (0, typeorm_1.OneToMany)(() => cityMedia_entity_1.CityMedia, (media) => media.city, { onDelete: 'CASCADE' }),
     __metadata("design:type", Array)
 ], City.prototype, "media", void 0);
 exports.City = City = __decorate([

@@ -20,6 +20,6 @@ export class CityMedia {
   @Column({ nullable: true })
   public_id: string;
 
-  @ManyToOne(() => City, (city) => city.media)
+  @ManyToOne(() => City, (city) => city.media,{onDelete:'CASCADE'})
   city: City;
 }

@@ -10,6 +10,8 @@ dotenv.config();
 const cookieParser = require("cookie-parser");
 const swagger_1 = require("@nestjs/swagger");
 const helmet_1 = require("helmet");
+const platform_express_1 = require("@nestjs/platform-express");
+const express = require("express");
 const logger = new common_1.Logger('Bootstrap');
 class GlobalExceptionFilter {
     catch(exception, host) {
@@ -35,7 +37,8 @@ exports.GlobalExceptionFilter = GlobalExceptionFilter;
 let cachedApp;
 async function bootstrap() {
     if (!cachedApp) {
-        const app = await core_1.NestFactory.create(app_module_1.AppModule);
+        const expressApp = express();
+        const app = await core_1.NestFactory.create(app_module_1.AppModule, new platform_express_1.ExpressAdapter(expressApp));
         app.useGlobalPipes(new common_1.ValidationPipe({ whitelist: true }));
         app.use((0, helmet_1.default)());
         app.enableCors({
@@ -48,7 +51,7 @@ async function bootstrap() {
         const swagger = new swagger_1.DocumentBuilder()
             .setTitle('Nestjs-real-state-application')
             .addServer(process.env.NODE_ENV === 'production'
-            ? 'https://real-state-project-nestjs.vercel.app'
+            ? process.env.VERCEL_URL || 'https://real-state-project-nestjs.vercel.app'
             : 'http://localhost:3000')
             .setVersion('1.0')
             .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
@@ -65,5 +68,14 @@ async function handler(req, res) {
     const app = await bootstrap();
     const instance = app.getHttpAdapter().getInstance();
     return instance(req, res);
+}
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_ENV) {
+    bootstrap().then(app => {
+        const port = process.env.PORT || 3000;
+        const expressApp = app.getHttpAdapter().getInstance();
+        expressApp.listen(port, () => {
+            logger.log(`Application is running on: http://localhost:${port}`);
+        });
+    });
 }
 //# sourceMappingURL=main.js.map

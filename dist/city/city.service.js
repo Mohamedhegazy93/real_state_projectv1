@@ -70,6 +70,9 @@ let CityService = class CityService {
         if (!city) {
             throw new common_1.NotFoundException('city not found');
         }
+        if (!Array.isArray(filesIds) || filesIds.length === 0) {
+            throw new common_1.BadRequestException('Files IDs must be an array and cannot be empty.');
+        }
         for (const fileId of filesIds) {
             const media = await this.cityMediaRepository.findOne({
                 where: { media_id: fileId, city: { city_id: id } },
@@ -134,7 +137,7 @@ let CityService = class CityService {
         }
         catch (error) {
             if (error.message.includes('violates foreign key constraint')) {
-                throw new common_1.BadRequestException('can not delete this city because it has related neighborhoods');
+                throw new common_1.BadRequestException(error.message);
             }
             throw error;
         }

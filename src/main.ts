@@ -1,4 +1,3 @@
-// Imports
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { Request, Response } from 'express';
@@ -9,17 +8,18 @@ import {
   HttpStatus,
   Logger,
   ValidationPipe,
+  INestApplication,
 } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-dotenv.config();
+dotenv.config(); // تم الإبقاء على هذا السطر بناءً على طلبك
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
+import { ExpressAdapter } from '@nestjs/platform-express';
+import * as express from 'express';
 
-// Logger
 const logger = new Logger('Bootstrap');
 
-// Global Exception Filter
 export class GlobalExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -48,13 +48,13 @@ export class GlobalExceptionFilter implements ExceptionFilter {
   }
 }
 
-let cachedApp;
+let cachedApp: INestApplication;
 
 async function bootstrap() {
   if (!cachedApp) {
-    const app = await NestFactory.create(AppModule);
-    
-    // configurs
+    const expressApp = express();
+    const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
+
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
     app.use(helmet());
     app.enableCors({
@@ -65,11 +65,10 @@ async function bootstrap() {
     });
     app.use(cookieParser());
 
-    //Swagger Docs
     const swagger = new DocumentBuilder()
       .setTitle('Nestjs-real-state-application')
       .addServer(process.env.NODE_ENV === 'production' 
-        ? process.env.RAILWAY_STATIC_URL || 'https://real-state-project-nestjs.vercel.app'
+        ? process.env.VERCEL_URL || 'https://real-state-project-nestjs.vercel.app'
         : 'http://localhost:3000')
       .setVersion('1.0')
       .addSecurity('bearer', { type: 'http', scheme: 'bearer' })
@@ -78,24 +77,23 @@ async function bootstrap() {
     const documentation = SwaggerModule.createDocument(app, swagger);
     SwaggerModule.setup('swagger', app, documentation);
 
-    await app.init();
+    await app.init(); 
     cachedApp = app;
   }
   return cachedApp;
 }
 
-// Export for serverless
-export default async function handler(req, res) {
+export default async function handler(req: any, res: any) {
   const app = await bootstrap();
   const instance = app.getHttpAdapter().getInstance();
   return instance(req, res);
 }
 
-// Start the server if not in serverless environment
-if (process.env.NODE_ENV !== 'production' || !process.env.RAILWAY_STATIC_URL) {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_ENV) {
   bootstrap().then(app => {
     const port = process.env.PORT || 3000;
-    app.listen(port, () => {
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.listen(port, () => {
       logger.log(`Application is running on: http://localhost:${port}`);
     });
   });

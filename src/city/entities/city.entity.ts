@@ -14,6 +14,6 @@ export class City {
   @OneToMany(() => Neighborhood, (neighborhood) => neighborhood.city)
   neighborhoods: Neighborhood[];
 
-  @OneToMany(() => CityMedia, (media) => media.city)
+  @OneToMany(() => CityMedia, (media) => media.city,{onDelete:'CASCADE'})
   media: Media[];
 }
