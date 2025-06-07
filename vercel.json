@@ -3,7 +3,7 @@
   "outputDirectory": "dist",
   "functions": {
     "dist/main.js": {
-      "runtime": "nodejs@20.x"  
+      "runtime": "nodejs20.x"  
                                 
     }
   },
