@@ -3,7 +3,7 @@
     "outputDirectory": "dist",
     "functions": {
       "dist/main.js": {
-        "runtime": "nodejs@20.x"
+        "runtime": "@vercel/node@2.0.0"
       }
     },
     "routes": [
