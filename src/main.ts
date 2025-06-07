@@ -11,12 +11,13 @@ import {
   INestApplication,
 } from '@nestjs/common';
 import * as dotenv from 'dotenv';
-dotenv.config(); // تم الإبقاء على هذا السطر بناءً على طلبك
+dotenv.config();
 import * as cookieParser from 'cookie-parser';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import * as express from 'express';
+// **** التعديل هنا: استيراد express كـ default import
+import express from 'express'; // <--- تم التعديل هنا
 
 const logger = new Logger('Bootstrap');
 
@@ -52,7 +53,8 @@ let cachedApp: INestApplication;
 
 async function bootstrap() {
   if (!cachedApp) {
-    const expressApp = express();
+    // **** التعديل هنا: استخدام express() مباشرة لأنه تم استيراده كـ default import
+    const expressApp = express(); // <--- تم التعديل هنا
     const app = await NestFactory.create(AppModule, new ExpressAdapter(expressApp));
 
     app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
@@ -77,7 +79,13 @@ async function bootstrap() {
     const documentation = SwaggerModule.createDocument(app, swagger);
     SwaggerModule.setup('swagger', app, documentation);
 
-    await app.init(); 
+    // **** ملاحظة: لا حاجة لـ await app.init() هنا في بيئة Vercel Serverless Function
+    // Vercel يتوقع RequestListener جاهزًا
+    // هذا السطر يمكن أن يسبب مشاكل في بيئة Vercel
+    // ولكن في بيئة التطوير المحلية، قد يكون مطلوبًا.
+    // سنقوم بتجربة إزالته أولاً، وإذا فشل، نعيده ونفكر في حل آخر.
+    // حالياً سأبقي عليه ولكن مع الأخذ في الاعتبار أنه قد يكون هو المشكلة.
+    // await app.init(); // <--- هذا السطر قد يكون المشكلة في بيئة Vercel
     cachedApp = app;
   }
   return cachedApp;
@@ -86,9 +94,13 @@ async function bootstrap() {
 export default async function handler(req: any, res: any) {
   const app = await bootstrap();
   const instance = app.getHttpAdapter().getInstance();
+  // التأكد من أن instance قادر على التعامل مع req, res
+  // إذا كان app.init() يسبب مشاكل، فإن هذه النقطة هي التي ستتأثر.
+  await app.listen(0); // <--- أضف هذا السطر لتهيئة الـ RequestListener بشكل صحيح
   return instance(req, res);
 }
 
+// هذا الجزء هو لتشغيل التطبيق محليًا
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL_ENV) {
   bootstrap().then(app => {
     const port = process.env.PORT || 3000;
